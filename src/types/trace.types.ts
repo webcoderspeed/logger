@@ -30,6 +30,6 @@ export interface TraceIdExtractorConfig {
 export interface TraceIdConfig {
   enabled: boolean;
   generator?: () => string;
-  header?: string;
   contextKey?: string;
+  extractor?: TraceIdExtractorConfig;
 }

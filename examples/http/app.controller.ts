@@ -1,4 +1,4 @@
-import { Controller, Get, Logger,  } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Logger } from '@nestjs/common';
 import { getCurrentTraceId } from '../../src';
 
 
@@ -34,6 +34,38 @@ export class AppController {
       return result;
     } catch (error: any) {
       this.logger.error(`Error processing world request - TraceID: ${traceId} - Error: ${error?.message}`, error?.stack);
+      throw error;
+    }
+  }
+
+  @Post('test')
+  postTest(@Body() body: any): any {
+    const traceId = getCurrentTraceId();
+    this.logger.log(`Processing POST /test request - TraceID: ${traceId}`);
+    
+    try {
+      const result = { message: 'POST request processed', receivedBody: body, traceId };
+      
+      this.logger.log(`POST request processed successfully - TraceID: ${traceId} - Result: ${JSON.stringify(result)}`);
+      return result;
+    } catch (error: any) {
+      this.logger.error(`Error processing POST request - TraceID: ${traceId} - Error: ${error?.message}`, error?.stack);
+      throw error;
+    }
+  }
+
+  @Get('param/:id')
+  getParam(@Param('id') id: string): any {
+    const traceId = getCurrentTraceId();
+    this.logger.log(`Processing GET /param/${id} request - TraceID: ${traceId}`);
+    
+    try {
+      const result = { message: 'Param request processed', paramId: id, traceId };
+      
+      this.logger.log(`Param request processed successfully - TraceID: ${traceId} - Result: ${JSON.stringify(result)}`);
+      return result;
+    } catch (error: any) {
+      this.logger.error(`Error processing param request - TraceID: ${traceId} - Error: ${error?.message}`, error?.stack);
       throw error;
     }
   }

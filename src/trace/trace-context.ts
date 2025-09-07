@@ -27,7 +27,6 @@ export class TraceContextManager {
     this.config = {
       enabled: true,
       generator: this.defaultGenerator,
-      header: 'x-trace-id',
       contextKey: 'traceId',
     };
   }

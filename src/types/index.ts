@@ -12,7 +12,7 @@ export type LogLevel = 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'fatal';
 export type LoggerAdapter = 'pino' | 'winston';
 
 // Environment types
-export type Environment = 'development' | 'production' | 'test';
+export type Environment = 'development' | 'production'
 
 // TraceID configuration
 

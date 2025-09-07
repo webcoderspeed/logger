@@ -1,15 +1,7 @@
 import { Logger } from '../core/logger';
 import { LoggerConfig, LogLevel } from '../types';
 import { getCurrentTraceId } from '../trace/trace-context';
-
-// Optional NestJS types - will be available when @nestjs/common is installed
-interface LoggerService {
-  log(message: any, context?: string): void;
-  error(message: any, trace?: string, context?: string): void;
-  warn(message: any, context?: string): void;
-  debug(message: any, context?: string): void;
-  verbose?(message: any, context?: string): void;
-}
+import { LoggerService } from '@nestjs/common';
 
 interface Injectable {
   (options?: { scope?: any }): ClassDecorator;
@@ -30,11 +22,11 @@ try {
 }
 
 /**
- * NestJS Logger Service that extends the built-in LoggerService
+ * Logitron Logger Service that extends the built-in LoggerService
  * This allows seamless integration with existing NestJS applications
  */
 @Injectable({ scope: Scope.TRANSIENT })
-export class NestJSLoggerService implements LoggerService {
+export class LogitronLoggerService implements LoggerService {
   private logger: Logger;
   private context?: string;
 
@@ -142,8 +134,8 @@ export class NestJSLoggerService implements LoggerService {
   /**
    * Create a child logger with additional context
    */
-  child(context: string, data?: Record<string, any>): NestJSLoggerService {
-    const childLogger = new NestJSLoggerService(
+  child(context: string, data?: Record<string, any>): LogitronLoggerService {
+    const childLogger = new LogitronLoggerService(
       {},
       this.context ? `${this.context}.${context}` : context
     );
@@ -224,53 +216,11 @@ export class NestJSLoggerService implements LoggerService {
 }
 
 /**
- * Factory function to create NestJS Logger Service
+ * Factory function to create Logitron Logger Service
  */
-export function createNestJSLogger(
+export function createLogitronLogger(
   config?: Partial<LoggerConfig>,
   context?: string
-): NestJSLoggerService {
-  return new NestJSLoggerService(config, context);
-}
-
-/**
- * NestJS Logger Module for dependency injection
- */
-export class LoggerModule {
-  static forRoot(config?: Partial<LoggerConfig>) {
-    return {
-      module: LoggerModule,
-      providers: [
-        {
-          provide: 'LOGGER_CONFIG',
-          useValue: config || {},
-        },
-        {
-          provide: NestJSLoggerService,
-          useFactory: (loggerConfig: Partial<LoggerConfig>) => {
-            return new NestJSLoggerService(loggerConfig);
-          },
-          inject: ['LOGGER_CONFIG'],
-        },
-      ],
-      exports: [NestJSLoggerService],
-      global: true,
-    };
-  }
-
-  static forFeature(context: string) {
-    return {
-      module: LoggerModule,
-      providers: [
-        {
-          provide: `LOGGER_${context.toUpperCase()}`,
-          useFactory: (baseLogger: NestJSLoggerService) => {
-            return baseLogger.child(context);
-          },
-          inject: [NestJSLoggerService],
-        },
-      ],
-      exports: [`LOGGER_${context.toUpperCase()}`],
-    };
-  }
+): LogitronLoggerService {
+  return new LogitronLoggerService(config, context);
 }

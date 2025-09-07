@@ -18,6 +18,8 @@ export class TraceIdExtractor {
    */
   public extractFromRequest(request: RequestLike): string | undefined {
     // Try to extract from headers first
+
+
     const headerTraceId = this.extractFromHeaders(request.headers);
     if (headerTraceId) {
       return headerTraceId;
@@ -25,6 +27,7 @@ export class TraceIdExtractor {
 
     // Try to extract from query parameters
     const queryTraceId = this.extractFromQuery(request.query);
+    
     if (queryTraceId) {
       return queryTraceId;
     }

@@ -1,2 +1,3 @@
-export * from './middlewares/logitron-trace.middleware';
-export * from './nestjs-logger'
+export * from './middlewares';
+export * from './logitron-logger.service';
+export * from './logitron-logger.module';

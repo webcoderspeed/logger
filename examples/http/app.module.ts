@@ -1,14 +1,23 @@
 import { Module, MiddlewareConsumer, NestModule } from '@nestjs/common';
 import { AppController } from './app.controller';
-import { LoggerModule  } from '../../src';
+import { LogitronLoggerModule  } from '../../src';
 
 @Module({
   imports: [
-    LoggerModule.forRoot({
+    LogitronLoggerModule.forRoot({
       adapter: 'pino',
       level: 'info',
       appName: 'logitron-example',
-      traceId: true,
+      traceId: {
+        enabled: true,
+        contextKey: 'traceId',
+        extractor: {
+          header: ['x-trace-id', 'x-request-id', 'x-correlation-id'],
+          query: ['traceId', 'trace_id'],
+          body: ['traceId'],
+          params: ['id']
+        }
+      },
       options: {
         transport: {
           targets: [
@@ -18,24 +27,20 @@ import { LoggerModule  } from '../../src';
                 destination: 'api.log',
                 singleLine: true,
                 colorize: false,
-                levelFirst: false,
-                translateTime: 'dd-mm-yyyy hh:mm:ss TT',
-                ignore: 'level',
+                translateTime: 'yyyy-mm-dd HH:MM:ss',
               },
             },
             {
               target: 'pino-pretty',
               options: {
-                singleLine: true,
                 colorize: true,
-                levelFirst: false,
-                translateTime: 'dd-mm-yyyy hh:mm:ss TT',
-                ignore: 'level',
+                translateTime: 'yyyy-mm-dd HH:MM:ss',
               },
             },
           ],
         },
       },
+      environment : 'development'
     }),
   ],
   controllers: [AppController],

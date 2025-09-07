@@ -268,7 +268,6 @@ export class Logger implements ILogger {
       traceContext.configure({
         enabled: true,
         generator: traceConfig.generator,
-        header: traceConfig.header || 'x-trace-id',
         contextKey: traceConfig.contextKey || 'traceId',
       });
     }
@@ -286,8 +285,6 @@ export class Logger implements ILogger {
     
     if (nodeEnv === 'production') {
       return 'production';
-    } else if (nodeEnv === 'test') {
-      return 'test';
     } else {
       return 'development';
     }
