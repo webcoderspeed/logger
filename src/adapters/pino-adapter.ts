@@ -1,6 +1,5 @@
 import pino, { Logger as PinoLogger, LoggerOptions as PinoOptions } from 'pino';
 import { ILoggerAdapter, LogEntry, LogLevel } from '../types';
-import { CustomLogFormatter } from '../utils/custom-log-formatter';
 
 // Log level mapping
 const LEVEL_MAPPING: Record<LogLevel, string> = {
@@ -24,48 +23,22 @@ const REVERSE_LEVEL_MAPPING: Record<string, LogLevel> = {
 export class PinoAdapter implements ILoggerAdapter {
   private logger: PinoLogger;
   private currentLevel: LogLevel;
-  private customFormatter: CustomLogFormatter;
 
   constructor(options: PinoOptions = {}) {
-    this.customFormatter = new CustomLogFormatter();
-    // Default Pino configuration
     const defaultOptions: PinoOptions = {
       level: 'info',
-      timestamp: pino.stdTimeFunctions.isoTime,
-      formatters: {
-        level: (label) => ({ level: label }),
-        log: (object) => object,
-      },
-      serializers: {
-        error: pino.stdSerializers.err,
-        req: pino.stdSerializers.req,
-        res: pino.stdSerializers.res,
-      },
       ...options,
     };
 
-    try {
-      this.logger = pino(defaultOptions);
-    } catch (error) {
-      console.error('Failed to initialize Pino logger:', error);
-      // Fallback to basic pino logger
-      this.logger = pino();
-    }
+    this.logger = pino(defaultOptions);
     this.currentLevel = this.mapPinoLevelToLogLevel(this.logger.level);
   }
 
   public async log(entry: LogEntry): Promise<void> {
-    try {
-      // Use custom formatter to format the entire log message
-      const formattedMessage = this.customFormatter.format(entry);
-      
-      // Log the formatted message directly to console
-      console.log(formattedMessage);
-    } catch (error) {
-      // Fallback logging to prevent logger failures from breaking the application
-      console.error('Pino adapter logging failed:', error);
-      console.log('Original log entry:', entry);
-    }
+    const pinoLevel = LEVEL_MAPPING[entry.level] as keyof PinoLogger;
+    const logData = { ...entry.payload };
+    
+    (this.logger[pinoLevel] as any)(logData, entry.message);
   }
 
   public setLevel(level: LogLevel): void {
@@ -79,110 +52,12 @@ export class PinoAdapter implements ILoggerAdapter {
   }
 
   public async close(): Promise<void> {
-    // Pino doesn't have a built-in close method for the base logger
-    // But we can flush any pending writes if using a destination
-    try {
-      if (this.logger.flush) {
-        this.logger.flush();
-      }
-    } catch (error) {
-      console.error('Error closing Pino adapter:', error);
+    if (this.logger.flush) {
+      this.logger.flush();
     }
-  }
-
-  public getPinoLogger(): PinoLogger {
-    return this.logger;
-  }
-
-  private formatLogEntry(entry: LogEntry): Record<string, any> {
-    const logData: Record<string, any> = {
-      timestamp: entry.timestamp,
-      appName: entry.appName,
-      level: entry.level,
-    };
-
-    // Add trace ID if present
-    if (entry.traceId) {
-      logData.traceId = entry.traceId;
-    }
-
-    // Add context if present
-    if (entry.context) {
-      logData.context = entry.context;
-    }
-
-    // Add payload if present
-    if (entry.payload) {
-      logData.payload = entry.payload;
-    }
-
-    return logData;
   }
 
   private mapPinoLevelToLogLevel(pinoLevel: string): LogLevel {
     return REVERSE_LEVEL_MAPPING[pinoLevel] || 'info';
-  }
-
-  // Utility method to create child logger
-  public child(bindings: Record<string, any>): PinoAdapter {
-    const childLogger = this.logger.child(bindings);
-    const adapter = new PinoAdapter();
-    adapter.logger = childLogger;
-    adapter.currentLevel = this.currentLevel;
-    return adapter;
-  }
-
-  // Method to check if level is enabled
-  public isLevelEnabled(level: LogLevel): boolean {
-    const pinoLevel = LEVEL_MAPPING[level];
-    return this.logger.isLevelEnabled(pinoLevel);
-  }
-
-  // Method to add custom serializers
-  public addSerializers(serializers: Record<string, (obj: any) => any>): void {
-    // Create a new logger with updated serializers
-    const currentOptions = {
-      level: this.logger.level,
-      serializers: {
-        ...(this.logger as any).serializers,
-        ...serializers,
-      },
-    };
-    this.logger = pino(currentOptions);
-  }
-
-  // Method to create a logger with custom destination
-  public static createWithDestination(
-    destination: pino.DestinationStream,
-    options: PinoOptions = {}
-  ): PinoAdapter {
-    const logger = pino(options, destination);
-    const adapter = new PinoAdapter();
-    adapter.logger = logger;
-    adapter.currentLevel = adapter.mapPinoLevelToLogLevel(logger.level);
-    return adapter;
-  }
-
-  // Method to create a pretty-printed logger for development
-  public static createPretty(options: PinoOptions = {}): PinoAdapter {
-    try {
-      const prettyOptions = {
-        ...options,
-        transport: {
-          target: 'pino-pretty',
-          options: {
-            colorize: true,
-            translateTime: 'yyyy-mm-dd HH:MM:ss.l',
-            ignore: 'pid,hostname',
-            messageFormat: '[{appName}] [{traceId}] {msg}',
-          },
-        },
-      };
-
-      return new PinoAdapter(prettyOptions);
-    } catch (error) {
-      // Fallback to basic pino if pino-pretty is not available
-      return new PinoAdapter(options);
-    }
   }
 }

@@ -237,13 +237,13 @@ export class Logger implements ILogger {
     switch (this.config.adapter) {
       case 'pino':
         if (this.environment === 'development') {
-          return PinoAdapter.createPretty(adapterOptions);
+          return new PinoAdapter(adapterOptions);
         }
         return new PinoAdapter(adapterOptions);
       
       case 'winston':
         if (this.environment === 'development') {
-          return WinstonAdapter.createPretty(adapterOptions);
+          return new WinstonAdapter(adapterOptions);
         }
         return new WinstonAdapter(adapterOptions);
       

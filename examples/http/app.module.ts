@@ -3,37 +3,33 @@
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { LogitronLoggerModule } from '../../src';
+import winston from 'winston';
 
 @Module({
 	imports: [
 		LogitronLoggerModule.forRoot({
-			adapter: 'pino',
+			adapter: 'winston',
 			level: 'info',
 			appName: 'logitron-example',
 			traceId: false,
-			options: {
-				transport: {
-					targets: [
-						{
-							target: 'pino-pretty',
-							options: {
-								destination: 'api.log',
-								singleLine: true,
-								colorize: false,
-								translateTime: 'yyyy-mm-dd HH:MM:ss',
-							},
-						},
-						{
-							target: 'pino-pretty',
-							options: {
-								colorize: true,
-								translateTime: 'yyyy-mm-dd HH:MM:ss',
-							},
-						},
-					],
-				},
+			options:{
+				transports: [
+					new winston.transports.Console({
+						format: winston.format.combine(
+							winston.format.colorize(),
+							winston.format.simple(),
+						),
+					}),
+					new winston.transports.File({
+						filename: './logs/app.log',
+					}),
+					new winston.transports.File({
+						filename: './logs/error.log',
+						level: 'error',
+					}),
+				],
 			},
-			environment: 'development',
+			environment: 'production',
 		}),
 	],
 	controllers: [AppController],

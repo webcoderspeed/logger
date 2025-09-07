@@ -1,6 +1,5 @@
 import { Logger } from '../core/logger';
 import { LoggerConfig, LogLevel } from '../types';
-import { getCurrentTraceId } from '../trace/trace-context';
 import { LoggerService } from '@nestjs/common';
 
 interface Injectable {
@@ -184,47 +183,25 @@ export class LogitronLoggerService implements LoggerService {
       logData.context = logContext;
     }
 
-    // Include trace ID if available
-    const traceId = getCurrentTraceId();
-    if (traceId) {
-      logData.traceId = traceId;
-    }
-
-    // Handle different message types
-    let logMessage: string;
-    if (typeof message === 'string') {
-      logMessage = message;
-    } else if (message instanceof Error) {
-      logMessage = message.message;
-      if (level === 'error') {
-        // For error level, pass the Error object directly
-        this.logger.error(message, logData).catch(console.error);
-        return;
-      }
-    } else {
-      logMessage = JSON.stringify(message);
-      logData.originalMessage = message;
-    }
-
-    // Call the appropriate logger method
+    // Call the appropriate logger method - let transports handle formatting
     switch (level) {
       case 'trace':
-        this.logger.trace(logMessage, logData).catch(console.error);
+        this.logger.trace(message, logData).catch(console.error);
         break;
       case 'debug':
-        this.logger.debug(logMessage, logData).catch(console.error);
+        this.logger.debug(message, logData).catch(console.error);
         break;
       case 'info':
-        this.logger.info(logMessage, logData).catch(console.error);
+        this.logger.info(message, logData).catch(console.error);
         break;
       case 'warn':
-        this.logger.warn(logMessage, logData).catch(console.error);
+        this.logger.warn(message, logData).catch(console.error);
         break;
       case 'error':
-        this.logger.error(logMessage, logData).catch(console.error);
+        this.logger.error(message, logData).catch(console.error);
         break;
       default:
-        this.logger.info(logMessage, logData).catch(console.error);
+        this.logger.info(message, logData).catch(console.error);
     }
   }
 }
