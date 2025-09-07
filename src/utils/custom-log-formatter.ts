@@ -1,5 +1,6 @@
 import { LogEntry, ILogFormatter } from '../types';
 import { safeStringify } from './error-serializer';
+import stringify from 'fast-safe-stringify';
 
 // Color codes for console output
 const COLORS = {
@@ -50,8 +51,12 @@ const DEFAULT_OPTIONS: FormatterOptions = {
   prettyPrint: false,
 };
 
-// Base log formatter class
-export class LogFormatter implements ILogFormatter {
+/**
+ * Custom log formatter that handles conditional field inclusion
+ * Format: [yyyy-mm-dd HH:MM:ss.MS] [log_level] [app_name] [trace_id] [message] [payload]
+ * Fields are only included if they have values
+ */
+export class CustomLogFormatter implements ILogFormatter {
   private options: FormatterOptions;
 
   constructor(options: FormatterOptions = {}) {
@@ -59,8 +64,8 @@ export class LogFormatter implements ILogFormatter {
   }
 
   /**
-   * Format log entry according to the specified format:
-   * [yyyy-mm-dd HH:MM:ss.MS] [log_level] [app_name] [trace_id] [message] [payload]
+   * Format log entry with conditional field inclusion
+   * Format: [yyyy-mm-dd HH:MM:ss.MS] [log_level] [app_name] [trace_id] [message] [payload]
    */
   public format(entry: LogEntry): string {
     const parts: string[] = [];
@@ -114,30 +119,23 @@ export class LogFormatter implements ILogFormatter {
   }
 
   /**
-   * Format timestamp
+   * Format timestamp to yyyy-mm-dd HH:MM:ss.MS format
    */
   private formatTimestamp(timestamp: string): string {
     try {
       const date = new Date(timestamp);
-      return this.formatDate(date);
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      const hours = String(date.getHours()).padStart(2, '0');
+      const minutes = String(date.getMinutes()).padStart(2, '0');
+      const seconds = String(date.getSeconds()).padStart(2, '0');
+      const milliseconds = String(date.getMilliseconds()).padStart(3, '0');
+
+      return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}.${milliseconds}`;
     } catch {
       return timestamp;
     }
-  }
-
-  /**
-   * Format date according to the specified format
-   */
-  private formatDate(date: Date): string {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    const hours = String(date.getHours()).padStart(2, '0');
-    const minutes = String(date.getMinutes()).padStart(2, '0');
-    const seconds = String(date.getSeconds()).padStart(2, '0');
-    const milliseconds = String(date.getMilliseconds()).padStart(3, '0');
-
-    return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}.${milliseconds}`;
   }
 
   /**
@@ -150,7 +148,7 @@ export class LogFormatter implements ILogFormatter {
       if (this.options.prettyPrint) {
         payloadStr = safeStringify(payload);
       } else {
-        payloadStr = JSON.stringify(payload);
+        payloadStr = stringify(payload);
       }
 
       // Truncate if too long
@@ -243,9 +241,9 @@ export class JsonFormatter implements ILogFormatter {
     }
 
     try {
-      return JSON.stringify(logObject);
+      return stringify(logObject);
     } catch {
-      return JSON.stringify({
+      return stringify({
         timestamp: entry.timestamp,
         level: entry.level,
         message: 'Log formatting failed',
@@ -268,8 +266,12 @@ export class SimpleFormatter implements ILogFormatter {
   }
 }
 
+// Renamed exports for backward compatibility
+export const LogFormatter = CustomLogFormatter;
+
 // Default formatter instances
-export const defaultFormatter = new LogFormatter();
+export const customLogFormatter = new CustomLogFormatter();
+export const defaultFormatter = new CustomLogFormatter();
 export const jsonFormatter = new JsonFormatter();
 export const simpleFormatter = new SimpleFormatter();
 
@@ -283,6 +285,6 @@ export function createFormatter(
   } else if (environment === 'test') {
     return new SimpleFormatter();
   } else {
-    return new LogFormatter({ ...options, colorize: true, prettyPrint: true });
+    return new CustomLogFormatter({ ...options, colorize: true, prettyPrint: true });
   }
 }

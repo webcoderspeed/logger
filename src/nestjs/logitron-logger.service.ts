@@ -44,42 +44,56 @@ export class LogitronLoggerService implements LoggerService {
   /**
    * Write a 'log' level log.
    */
-  log(message: any, context?: string): void {
-    this.logMessage('info', message, context);
+  log(message: any, contextOrPayload?: string | Record<string, any>): void {
+    if (typeof contextOrPayload === 'string') {
+      this.logMessage('info', message, contextOrPayload);
+    } else {
+      this.logMessage('info', message, undefined, contextOrPayload);
+    }
   }
 
   /**
    * Write an 'error' level log.
    */
-  error(message: any, trace?: string, context?: string): void {
-    const errorData: Record<string, any> = {};
-    
-    if (trace) {
-      errorData.trace = trace;
+  error(message: any, traceOrPayload?: string | Record<string, any>, context?: string): void {
+    if (typeof traceOrPayload === 'string') {
+      this.logMessage('error', message, context, { trace: traceOrPayload });
+    } else {
+      this.logMessage('error', message, context, traceOrPayload);
     }
-    
-    this.logMessage('error', message, context, errorData);
   }
 
   /**
    * Write a 'warn' level log.
    */
-  warn(message: any, context?: string): void {
-    this.logMessage('warn', message, context);
+  warn(message: any, contextOrPayload?: string | Record<string, any>): void {
+    if (typeof contextOrPayload === 'string') {
+      this.logMessage('warn', message, contextOrPayload);
+    } else {
+      this.logMessage('warn', message, undefined, contextOrPayload);
+    }
   }
 
   /**
    * Write a 'debug' level log.
    */
-  debug(message: any, context?: string): void {
-    this.logMessage('debug', message, context);
+  debug(message: any, contextOrPayload?: string | Record<string, any>): void {
+    if (typeof contextOrPayload === 'string') {
+      this.logMessage('debug', message, contextOrPayload);
+    } else {
+      this.logMessage('debug', message, undefined, contextOrPayload);
+    }
   }
 
   /**
    * Write a 'verbose' level log (mapped to trace).
    */
-  verbose(message: any, context?: string): void {
-    this.logMessage('trace', message, context);
+  verbose(message: any, contextOrPayload?: string | Record<string, any>): void {
+    if (typeof contextOrPayload === 'string') {
+      this.logMessage('trace', message, contextOrPayload);
+    } else {
+      this.logMessage('trace', message, undefined, contextOrPayload);
+    }
   }
 
   /**
@@ -164,7 +178,7 @@ export class LogitronLoggerService implements LoggerService {
     data?: Record<string, any>
   ): void {
     const logContext = context || this.context;
-    const logData = data || {};
+    const logData = data ? { ...data } : {};
     
     if (logContext) {
       logData.context = logContext;

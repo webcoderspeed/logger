@@ -1,5 +1,5 @@
 export * from './error-serializer';
-export * from './log-formatter';
+export * from './custom-log-formatter';
 
 // Re-export commonly used utilities
 export {
@@ -11,11 +11,14 @@ export {
 } from './error-serializer';
 
 export {
+  CustomLogFormatter,
   LogFormatter,
   JsonFormatter,
   SimpleFormatter,
+  type FormatterOptions,
+  customLogFormatter,
   defaultFormatter,
   jsonFormatter,
   simpleFormatter,
   createFormatter,
-} from './log-formatter';
+} from './custom-log-formatter';

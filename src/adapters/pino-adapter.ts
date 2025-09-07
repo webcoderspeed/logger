@@ -1,5 +1,6 @@
 import pino, { Logger as PinoLogger, LoggerOptions as PinoOptions } from 'pino';
 import { ILoggerAdapter, LogEntry, LogLevel } from '../types';
+import { CustomLogFormatter } from '../utils/custom-log-formatter';
 
 // Log level mapping
 const LEVEL_MAPPING: Record<LogLevel, string> = {
@@ -23,8 +24,10 @@ const REVERSE_LEVEL_MAPPING: Record<string, LogLevel> = {
 export class PinoAdapter implements ILoggerAdapter {
   private logger: PinoLogger;
   private currentLevel: LogLevel;
+  private customFormatter: CustomLogFormatter;
 
   constructor(options: PinoOptions = {}) {
+    this.customFormatter = new CustomLogFormatter();
     // Default Pino configuration
     const defaultOptions: PinoOptions = {
       level: 'info',
@@ -53,55 +56,11 @@ export class PinoAdapter implements ILoggerAdapter {
 
   public async log(entry: LogEntry): Promise<void> {
     try {
-      const logData = this.formatLogEntry(entry);
-
-      // Use Pino's logging methods based on level
-       switch (entry.level) {
-         case 'trace':
-           if (entry.error) {
-             this.logger.trace({ ...logData, err: entry.error }, entry.message);
-           } else {
-             this.logger.trace(logData, entry.message);
-           }
-           break;
-         case 'debug':
-           if (entry.error) {
-             this.logger.debug({ ...logData, err: entry.error }, entry.message);
-           } else {
-             this.logger.debug(logData, entry.message);
-           }
-           break;
-         case 'info':
-           if (entry.error) {
-             this.logger.info({ ...logData, err: entry.error }, entry.message);
-           } else {
-             this.logger.info(logData, entry.message);
-           }
-           break;
-         case 'warn':
-           if (entry.error) {
-             this.logger.warn({ ...logData, err: entry.error }, entry.message);
-           } else {
-             this.logger.warn(logData, entry.message);
-           }
-           break;
-         case 'error':
-           if (entry.error) {
-             this.logger.error({ ...logData, err: entry.error }, entry.message);
-           } else {
-             this.logger.error(logData, entry.message);
-           }
-           break;
-         case 'fatal':
-           if (entry.error) {
-             this.logger.fatal({ ...logData, err: entry.error }, entry.message);
-           } else {
-             this.logger.fatal(logData, entry.message);
-           }
-           break;
-         default:
-           this.logger.info(logData, entry.message);
-       }
+      // Use custom formatter to format the entire log message
+      const formattedMessage = this.customFormatter.format(entry);
+      
+      // Log the formatted message directly to console
+      console.log(formattedMessage);
     } catch (error) {
       // Fallback logging to prevent logger failures from breaking the application
       console.error('Pino adapter logging failed:', error);
