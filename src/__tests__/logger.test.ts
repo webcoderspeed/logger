@@ -8,7 +8,7 @@ describe('Logger', () => {
       adapter: 'pino',
       level: 'debug',
       appName: 'test-app',
-      environment: 'test'
+      environment: 'development'
     });
   });
 

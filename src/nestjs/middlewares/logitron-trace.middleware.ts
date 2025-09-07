@@ -2,7 +2,7 @@
 
 import { Injectable, NestMiddleware } from '@nestjs/common';
 import { Request, Response, NextFunction } from 'express';
-import { TraceIdConfig, TraceIdExtractorConfig } from '../../types';
+import type { TraceIdConfig, TraceIdExtractorConfig } from '../../types';
 import {traceContext, TraceIdExtractor} from '../../trace'
 
 
@@ -18,6 +18,15 @@ export class LogitronTraceMiddleware implements NestMiddleware {
 
   use(req: Request, res: Response, next: NextFunction) {
     try {
+      // Check if traceId is enabled
+      if (!this.traceConfig?.enabled) {
+        next();
+        return;
+      }
+
+      // Configure trace context with the provided config
+      traceContext.configure(this.traceConfig);
+      
       // Use custom extractor config if provided, otherwise use defaults
       const extractorConfig: TraceIdExtractorConfig = this.traceConfig?.extractor || {
         header: trace_ids,
@@ -51,9 +60,12 @@ export class LogitronTraceMiddleware implements NestMiddleware {
         params: routeParams
       };
       
+      let traceId = extractor.extractFromRequest(requestData);
       
-      
-      const traceId = extractor.extractFromRequest(requestData);
+      // Auto-generate trace ID if not found and generator is available
+      if (!traceId && this.traceConfig.generator) {
+        traceId = this.traceConfig.generator();
+      }
       
       if (traceId) {
         traceContext.runWithTraceId(traceId, () => {

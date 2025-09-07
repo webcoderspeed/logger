@@ -43,9 +43,25 @@ export class LogitronLoggerModule implements NestModule {
 
     // Configure middleware with trace config
      const middlewareConfig = (req: Request, res: Response, next: NextFunction) => {
-       const traceConfig = typeof LogitronLoggerModule.loggerConfig.traceId === 'object' 
-         ? LogitronLoggerModule.loggerConfig.traceId as TraceIdConfig 
-         : undefined;
+       let traceConfig: TraceIdConfig | undefined;
+       
+       if (typeof LogitronLoggerModule.loggerConfig.traceId === 'object') {
+         traceConfig = LogitronLoggerModule.loggerConfig.traceId as TraceIdConfig;
+       } else if (LogitronLoggerModule.loggerConfig.traceId === true) {
+         // Default configuration when traceId is simply true
+         traceConfig = {
+           enabled: true,
+           contextKey: 'traceId',
+           generator: () => {
+             const timestamp = Date.now().toString(36);
+             const random = Math.random().toString(36).substring(2, 8);
+             return `${timestamp}-${random}`;
+           }
+         };
+       } else {
+         traceConfig = undefined;
+       }
+       
        const middleware = new LogitronTraceMiddleware(traceConfig);
        return middleware.use(req, res, next);
      };
