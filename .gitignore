@@ -67,3 +67,9 @@ pids/
 
 # Yarn Integrity file
 .yarn-integrity
+
+node_modules
+lib
+.env
+logs
+*.log

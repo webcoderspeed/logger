@@ -1,5 +1,6 @@
 import { Logger } from '../core/logger';
 import { LoggerConfig, LogLevel } from '../types';
+import { getCurrentTraceId } from '../trace/trace-context';
 
 // Optional NestJS types - will be available when @nestjs/common is installed
 interface LoggerService {
@@ -92,9 +93,18 @@ export class NestJSLoggerService implements LoggerService {
   /**
    * Set the log level
    */
-  setLogLevels(levels: LogLevel[]): void {
+  setLogLevels(levels: ('log' | 'error' | 'warn' | 'debug' | 'verbose' | 'fatal')[]): void {
     // NestJS uses an array of levels, we'll use the most restrictive one
     if (levels.length > 0) {
+      const levelMapping: Record<string, LogLevel> = {
+        log: 'info',
+        error: 'error',
+        warn: 'warn',
+        debug: 'debug',
+        verbose: 'trace',
+        fatal: 'fatal',
+      };
+
       const levelPriority: Record<LogLevel, number> = {
         trace: 0,
         debug: 1,
@@ -104,11 +114,13 @@ export class NestJSLoggerService implements LoggerService {
         fatal: 5,
       };
 
-      const minLevel = levels.reduce((min, level) => {
-        return levelPriority[level] < levelPriority[min] ? level : min;
-      });
-
-      this.logger.setLevel(minLevel);
+      const mappedLevels = levels.map(level => levelMapping[level]).filter((level): level is LogLevel => Boolean(level));
+      if (mappedLevels.length > 0) {
+        const minLevel = mappedLevels.reduce((min, level) => {
+          return levelPriority[level] < levelPriority[min] ? level : min;
+        });
+        this.logger.setLevel(minLevel);
+      }
     }
   }
 
@@ -164,6 +176,12 @@ export class NestJSLoggerService implements LoggerService {
     
     if (logContext) {
       logData.context = logContext;
+    }
+
+    // Include trace ID if available
+    const traceId = getCurrentTraceId();
+    if (traceId) {
+      logData.traceId = traceId;
     }
 
     // Handle different message types

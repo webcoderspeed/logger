@@ -41,7 +41,13 @@ export class PinoAdapter implements ILoggerAdapter {
       ...options,
     };
 
-    this.logger = pino(defaultOptions);
+    try {
+      this.logger = pino(defaultOptions);
+    } catch (error) {
+      console.error('Failed to initialize Pino logger:', error);
+      // Fallback to basic pino logger
+      this.logger = pino();
+    }
     this.currentLevel = this.mapPinoLevelToLogLevel(this.logger.level);
   }
 

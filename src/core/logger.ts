@@ -14,7 +14,6 @@ import { PinoAdapter } from '../adapters/pino-adapter';
 import { WinstonAdapter } from '../adapters/winston-adapter';
 import { traceContext, getCurrentTraceId } from '../trace';
 import { serializeError } from '../utils/error-serializer';
-import { createFormatter } from '../utils/log-formatter';
 
 // Performance timing storage
 const timings = new Map<string, TimingEntry>();
@@ -229,6 +228,10 @@ export class Logger implements ILogger {
    * Create the appropriate adapter based on configuration
    */
   private createAdapter(): ILoggerAdapter {
+    if (!this.config.adapter) {
+      throw new Error('Logger adapter is required in configuration');
+    }
+    
     const adapterOptions = this.config.options || {};
     
     switch (this.config.adapter) {

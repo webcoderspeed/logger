@@ -1,6 +1,6 @@
 import { Request } from 'express';
-import { TraceIdExtractorConfig } from '../types/interceptor.types';
 import { RequestLike } from '../types/http.types';
+import { TraceIdExtractorConfig } from 'src/types';
 
 // TraceID extractor class
 export class TraceIdExtractor {

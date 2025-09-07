@@ -19,3 +19,17 @@ export interface RequestContext {
   userAgent?: string;
   ip?: string;
 }
+
+export interface TraceIdExtractorConfig {
+  header?: string | string[];
+  query?: string | string[];
+  body?: string | string[];
+  params?: string | string[];
+}
+
+export interface TraceIdConfig {
+  enabled: boolean;
+  generator?: () => string;
+  header?: string;
+  contextKey?: string;
+}

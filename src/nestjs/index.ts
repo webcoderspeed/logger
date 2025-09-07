@@ -1,8 +1,2 @@
-export * from './nestjs-logger';
-
-// Re-export commonly used classes and functions
-export {
-  NestJSLoggerService,
-  createNestJSLogger,
-  LoggerModule,
-} from './nestjs-logger';
+export * from './middlewares/logitron-trace.middleware';
+export * from './nestjs-logger'

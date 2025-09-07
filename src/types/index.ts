@@ -1,9 +1,8 @@
 import { LoggerOptions as PinoOptions } from 'pino';
 import { LoggerOptions as WinstonOptions } from 'winston';
+import { TraceIdConfig } from './trace.types';
 
-// Export all type definitions
 export * from './http.types';
-export * from './interceptor.types';
 export * from './trace.types';
 
 // Log levels
@@ -16,14 +15,7 @@ export type LoggerAdapter = 'pino' | 'winston';
 export type Environment = 'development' | 'production' | 'test';
 
 // TraceID configuration
-export interface TraceIdConfig {
-  enabled: boolean;
-  generator?: () => string;
-  header?: string;
-  contextKey?: string;
-}
 
-// Note: TraceIdExtractorConfig and InterceptorConfig are now defined in types module
 
 // Base logger configuration
 export interface LoggerConfig {
@@ -38,7 +30,6 @@ export interface LoggerConfig {
     colorize?: boolean;
     json?: boolean;
   };
-  interceptor?: import('./interceptor.types').InterceptorConfig;
 }
 
 // Log entry structure
