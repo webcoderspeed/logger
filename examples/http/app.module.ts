@@ -10,7 +10,7 @@ import { LogitronLoggerModule } from '../../src';
 			adapter: 'pino',
 			level: 'info',
 			appName: 'logitron-example',
-			traceId: true,
+			traceId: false,
 			options: {
 				transport: {
 					targets: [
