@@ -1,0 +1,23 @@
+
+# Directories
+node_modules/
+build/
+coverage/
+
+# Files
+.eslintrc.*
+.prettierrc
+.release-it.json
+.babelrc
+.cz-config.cjs
+commitlint.config.cjs
+jest.config.ts
+package.json
+package-lock.json
+readme.md
+tsconfig.json
+tsconfig.node.json
+
+dist
+build
+scripts
